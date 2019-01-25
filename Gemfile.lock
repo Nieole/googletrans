@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    googletrans (0.1.0)
+    googletrans (0.2.0)
       http (~> 4.0.0)
 
 GEM
