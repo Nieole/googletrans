@@ -1,32 +1,39 @@
+require "http"
+
 module Googletrans
   class Token
-    attr_accessor :tkk
     @@tkks = {}
 
-    def initialize source,argument = {}
-      @persistent = argument[:persistent]
-      @service_url = argument[:service_url]
-      @source = source
+    def initialize query,service_url
+      @service_url = service_url
+      @query = query
+      if config
+        @persistent = config.first || persistent
+      else
+        @persistent = persistent
+      end
       init
     end
 
     def token
-      acquire
+      {token:acquire,persistent:@persistent}
     end
 
     private
     def init
-      origin_tkk = @@tkks[@service_url]
-      if origin_tkk && origin_tkk.split('.').first == now
-        @tkk = origin_tkk
-      else
-        @tkk = tkk
-        @@tkks[@service_url] = @tkk
+      if config and config.last.split('.').first == now
+        return @tkk = config.last
       end
+      @tkk = tkk
+      @@tkks[@service_url] = [@persistent,@tkk]
     end
 
     def tkk
       @persistent.get("/").to_s.match(%r{tkk:'\d+.\d+'}).to_s.split("'")[1]
+    end
+
+    def config
+      @@tkks[@service_url]
     end
 
     def now
@@ -34,7 +41,7 @@ module Googletrans
     end
 
     def acquire
-      ints = @source.split('').map { |e| e.ord }
+      ints = @query.split('').map { |e| e.ord }
       t = @tkk.split('.').map { |e| e.to_i }
       a = t.first
       add(ints).each do |i|
@@ -45,6 +52,10 @@ module Googletrans
       a = (a & 2147483647) + 2147483648 if a < 0
       a %= 1000000
       "#{a}.#{a ^ t.first}"
+    end
+
+    def persistent
+      HTTP.follow.persistent @service_url
     end
 
     def add arr

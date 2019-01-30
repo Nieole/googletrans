@@ -1,4 +1,3 @@
-require "http"
 require 'json'
 require "googletrans/gtoken"
 
@@ -6,8 +5,6 @@ module Googletrans
   class Translator
     LANGUAGES = ['af','sq','am','ar','hy','az','eu','be','bn','bs','bg','ca','ceb','ny','zh-cn','zh-tw','co','hr','cs','da','nl','en','eo','et','tl','fi','fr','fy','gl','ka','de','el','gu','ht','ha','haw','iw','hi','hmn','hu','is','ig','id','ga','it','ja','jw','kn','kk','km','ko','ku','ky','lo','la','lv','lt','lb','mk','mg','ms','ml','mt','mi','mr','mn','my','ne','no','ps','fa','pl','pt','pa','ro','ru','sm','gd','sr','st','sn','sd','si','sk','sl','so','es','su','sw','sv','tg','ta','te','th','tr','uk','ur','uz','vi','cy','xh','yi','yo','zu','fil','he','auto']
     HTTP_OR_HTTPS_RE = %r{^https?://}i
-
-    attr_accessor :service_urls,:user_agent
 
     def initialize(argument = {})
       @service_urls = argument[:service_urls] ||= ['translate.google.cn']
@@ -19,9 +16,9 @@ module Googletrans
       raise "src is wrong" unless LANGUAGES.include? src
       raise "dest is wrong" unless LANGUAGES.include? dest
       return query.map { |e| translator e,src,dest } if query.class == Array
-      request = persistent
-      token = Token.new(query,request).token
-      response = request[:persistent].get "/translate_a/single",:params => build_params(query:query,src:src,dest:dest,token:token)
+      url = service_url
+      token = Token.new(query,url).token
+      response = token[:persistent].get "/translate_a/single",:params => build_params(query:query,src:src,dest:dest,token:token[:token])
       raise "request failed" unless response.status.success?
       json = JSON.parse response.body.to_s
       translated = json&.first&.map { |e| e&.first }.join
@@ -29,9 +26,8 @@ module Googletrans
     end
 
     private
-    def persistent
-      service_url = @service_urls.sample
-      {service_url:service_url,persistent:HTTP.follow.persistent(service_url)}
+    def service_url
+      @service_urls.sample
     end
 
     def build_params params = {}
