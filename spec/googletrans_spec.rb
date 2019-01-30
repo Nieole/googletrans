@@ -8,18 +8,18 @@ RSpec.describe Googletrans do
   end
 
   it "it's worked" do
-    translated = Googletrans::Translator.new.translator(source = "hello",dest = 'zh-cn')
+    translated = Googletrans::Translator.new.translator(query = "hello",dest = 'zh-cn')
     expect(translated).not_to be nil
   end
 
   it "translate english to chinese" do
-    translated = Googletrans::Translator.new.translator(source = "hello",dest = 'zh-cn')
+    translated = Googletrans::Translator.new.translator(query = "hello",dest = 'zh-cn')
     expect(translated[:translated]).to eq("你好")
   end
 
   it "it's can translator array" do
-    source = ['hello','world']
-    translated = Googletrans::Translator.new.translator(source=source,dest='zh-cn')
+    query = ['hello','world']
+    translated = Googletrans::Translator.new.translator(query=query,dest='zh-cn')
     expect(translated.class).to eq(Array)
   end
 end
