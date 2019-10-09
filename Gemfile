@@ -3,3 +3,5 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 # Specify your gem's dependencies in googletrans.gemspec
 gemspec
+
+gem 'codecov', :require => false, :group => :test
